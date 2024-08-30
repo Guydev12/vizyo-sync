@@ -25,10 +25,14 @@ export class UserController {
   ){
     return this.userService.sendEmail(id,null)
   }
-  /*
-  //Update User
-  //reset password
-  //query a user 
-  //Delete
-  */
+  @Patch(":id")
+  async update(@Body()dto:UpdateUserDto,@Param('id')id:string){
+    return this.userService.update(dto,id)
+  }
+@Delete(":id")
+async delete(@Param('id') id:string){
+  return this.userService.remove(id)
+}
+
+
 }

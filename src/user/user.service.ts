@@ -145,7 +145,31 @@ private generateResetCode(): string {
 
     return 'Password has been reset';
   }
-
   
+  
+async update(dto: UpdateUserDto, id: string) {
+  const user = await this.usersRepository.findOne({ where: { id } });
 
+  if (!user) {
+    throw new HttpException('User not found', 404);
+  }
+
+  // Mise à jour des informations de l'utilisateur
+   Object.assign(user, {...dto});
+   
+
+  // Sauvegarde des modifications dans la base de données
+  return await this.usersRepository.save(user);
+  
+  
+}
+async remove(id:string){
+  const user = await this.usersRepository.findOne({ where: { id } });
+
+  if (!user) {
+    throw new HttpException('User not found', 404);
+  }
+  await this.usersRepository.remove(user)
+  return "User Removed successfully"
+}
 }
