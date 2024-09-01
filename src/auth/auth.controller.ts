@@ -20,7 +20,7 @@ export class AuthController {
   }
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string) {
-    return this.userService.verifyEmail(token);
+    return await this.userService.verifyEmail(token);
   }
   
   @Post("login")

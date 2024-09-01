@@ -23,6 +23,12 @@
       ],
       "@app/common/*": [
         "libs/common/src/*"
+      ],
+      "@app/interfaces": [
+        "libs/interfaces/src"
+      ],
+      "@app/interfaces/*": [
+        "libs/interfaces/src/*"
       ]
     }
   }

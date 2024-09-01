@@ -7,6 +7,7 @@ import{
 }from'typeorm'
 import{Exclude} from 'class-transformer'
 import * as bcrypt from 'bcryptjs'
+import { Profile } from '@app/common'
 
 @Entity({name:"users"})
 @Unique(["username"])
@@ -47,6 +48,18 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+  
+  @Column({nullable:true})
+  fullname?:string
+  
+  @Column({nullable:true})
+  avatarUrl?:string
+  
+  @Column({nullable:true})
+  bio?:string
+  
+
+
   //hash the password Before save in the database
  @BeforeInsert()
  async hashPasswordBeforeInsert() {

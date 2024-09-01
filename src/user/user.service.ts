@@ -1,4 +1,4 @@
-import { Injectable,HttpException,ConflictException } from '@nestjs/common';
+import { Injectable,HttpException,ConflictException,NotFoundException } from '@nestjs/common';
 import * as crypto from"crypto"
 import { InjectRepository} from '@nestjs/typeorm';
 import { Repository,MoreThan} from 'typeorm';
@@ -10,7 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import{TokenService,EmailService } from '@app/common'
 
 
-  let message:string=""
+
 @Injectable()
 export class UserService {
   constructor(
@@ -40,7 +40,7 @@ export class UserService {
 
       await this.sendEmail(null,dto.email)
       
-      return `A Email was sent to ${dto.email}`
+      return`A Email was sent to ${dto.email}`
 
     } catch (err) {
       console.log(err);
@@ -172,4 +172,17 @@ async remove(id:string){
   await this.usersRepository.remove(user)
   return "User Removed successfully"
 }
+
+async updateAvatar(id: string, avatarUrl: string): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where:{id}
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.avatarUrl = avatarUrl;
+    return this.usersRepository.save(user);
+  }
+
 }
