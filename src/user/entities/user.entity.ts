@@ -7,7 +7,6 @@ import{
 }from'typeorm'
 import{Exclude} from 'class-transformer'
 import * as bcrypt from 'bcryptjs'
-import { Profile } from '@app/common'
 
 @Entity({name:"users"})
 @Unique(["username"])
