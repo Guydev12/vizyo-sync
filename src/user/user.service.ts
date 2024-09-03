@@ -162,15 +162,16 @@ private generateResetCode(): string {
   
   
 async update(dto: UpdateUserDto, id: string) {
+  
   const user = await this.usersRepository.findOne({ where: { id } });
 
   if (!user) {
     throw new HttpException('User not found', 404);
   }
-
+  
   // Mise à jour des informations de l'utilisateur
    Object.assign(user, {...dto});
-   
+   user.fullname=`${dto.lastname} ${dto.firstname}`
 
   // Sauvegarde des modifications dans la base de données
   return await this.usersRepository.save(user);

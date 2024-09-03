@@ -3,7 +3,8 @@ import{
   Column,
   Entity,
   Unique,
-  BeforeInsert
+  BeforeInsert,
+  BeforeUpdate
 }from'typeorm'
 import{Exclude} from 'class-transformer'
 import * as bcrypt from 'bcryptjs'
@@ -66,5 +67,10 @@ export class User {
       this.password = await bcrypt.hash(this.password, 10);
     }
   }
+  
+  @BeforeUpdate()
+  updateTimestamp() {
+  this.updatedAt = new Date();
+}
   
 }
