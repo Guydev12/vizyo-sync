@@ -24,7 +24,7 @@ export class User {
   isVerified:boolean
   
   @Column({nullable:true})
-  @Exclude()
+ @Exclude()
   resetPasswordCode?:string
   
   @Column({nullable:true})

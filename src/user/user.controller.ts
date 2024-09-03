@@ -9,6 +9,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import {AuthGuard }from "@app/common"
 import {Express} from 'express'
 import {Multer} from 'multer'
+import {ResetPasswordDto} from "../auth/dto"
 
 @UseInterceptors(ClassSerializerInterceptor)
 @UseGuards(AuthGuard)
@@ -23,6 +24,11 @@ export class UserController {
   async findOne(@Param('id') id:string ){
     return await this.userService.findOne(id)
   }
+  
+
+  
+  
+  
   @Patch("verify/:id")
   async verify(
       @Param('id')id:string,

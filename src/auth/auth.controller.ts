@@ -1,5 +1,6 @@
 import { Controller, Post, Body, UseInterceptors,ClassSerializerInterceptor,Req,UseGuards,Query,Get} from '@nestjs/common';
 import { AuthService } from './auth.service';
+import {Request} from 'express'
 import { CreateAuthDto ,LoginDto,UpdateAuthDto,ForgotPasswordDto,ResetPasswordDto} from './dto';
 import {UserService} from '../user/user.service'
 
@@ -22,6 +23,11 @@ export class AuthController {
   async verifyEmail(@Query('token') token: string) {
     return await this.userService.verifyEmail(token);
   }
+  @Post('verify-reset-code')
+   verifyResetCode(@Body('code') code:string){
+    console.log("code con: ", code)
+    return  this.userService.verifyResetCode(code)
+  }
   
   @Post("login")
    login(@Body() dto:LoginDto) {
@@ -37,10 +43,9 @@ export class AuthController {
     return this.userService.forgotPassword(dto)
   }
 @Post('reset-password')
-  async resetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto) {
-
-    return this.userService.resetPassword(resetPasswordDto);
+  async resetPassword(@Req() req:Request,@Body('newPassword') newPassword:string) {
+    const token = req.headers.token
+    return this.userService.resetPassword(token,newPassword);
   }
 
 }

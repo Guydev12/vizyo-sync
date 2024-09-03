@@ -114,33 +114,47 @@ private generateResetCode(): string {
       throw new HttpException('User with this email does not exist', 404);
     }
 
-    const resetCode = this.generateResetCode();
+    const resetCode = await this.generateResetCode();
+    console.log(resetCode)
     user.resetPasswordCode = resetCode;
     user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
+    console.log(user)
     await this.usersRepository.save(user);
 
     await this.emailService.sendPasswordResetEmail(user.email, resetCode);
 
     return 'Password reset code sent';
   }
-  
-  async resetPassword(dto: ResetPasswordDto) {
+  async verifyResetCode(code:string){
+    console.log("service code : ",code)
     const user = await this.usersRepository.findOne({
       where: {
-        resetPasswordCode: dto.resetCode,
-        resetPasswordExpires: MoreThan(new Date()),
+        resetPasswordCode:code,
+        resetPasswordExpires:MoreThan(new Date()),
       },
     });
-
     if (!user) {
       throw new HttpException('Reset code is invalid or has expired', 400);
     }
-
-    user.password = await bcrypt.hash(dto.newPassword, 10);
+    console.log("user",user)
+    console.log("code ",user.resetPasswordCode)
+    
+    //
+    
+    return await this.tokenService.generateToken({email:user.email})
+    
+  }
+  async resetPassword(token,newPassword) {
+   const decoded= await this.tokenService.verifyToken(token)
+   const user = await this.findEmail(decoded.email)
+   if (!user) {
+      throw new Error('User not found');
+    }
+    user.password = await bcrypt.hash(newPassword, 10);
     user.resetPasswordCode = null;
     user.resetPasswordExpires = null;
 
+    
     await this.usersRepository.save(user);
 
     return 'Password has been reset';
