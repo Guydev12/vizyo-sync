@@ -9,7 +9,8 @@ import * as bcrypt from'bcryptjs'
 
 type Payload ={
   sub:string,
-  username:string
+  username:string,
+  email:string
 }
 let expDate = new Date();
 expDate.setTime(new Date().getTime() + 5*60*(60*1000));
@@ -34,7 +35,8 @@ export class AuthService {
       const user = await this.validateUser(dto.email,dto.password)
       const payload:Payload = {
         username:user.username,
-        sub:user.id
+        sub:user.id,
+        email: user.email
       }
       
       return{
@@ -51,7 +53,8 @@ export class AuthService {
     async refreshToken(user){
       const payload:Payload={
         username:user.username,
-        sub:user.sub
+        sub:user.sub,
+        email:user.email
       }
       return{
         backenTokens:{

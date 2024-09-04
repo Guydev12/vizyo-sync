@@ -42,7 +42,7 @@ await transporter.sendMail(mailOptions);
     });
     
   const mailOptions = {
-    from: 'no-reply@yourdomain.com',
+    from:  `"Watchly" <${this.configService.get<string>("USER_EMAIL")}>`,
     to: email,
     subject: 'Password Reset',
     html: `

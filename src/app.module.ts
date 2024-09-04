@@ -3,6 +3,10 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule,ConfigService } from '@nestjs/config';
 import { UserModule } from './user/user.module';
+import { User } from './user/entities/user.entity';
+import { Room } from './room/entities/room.entity';
+import { RoomModule } from './room/room.module';
+
 
 @Module({
   imports: [
@@ -23,10 +27,12 @@ import { UserModule } from './user/user.module';
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('DB_PASS'),
         database: configService.get<string>('DB_NAME'),
-        autoLoadEntities: true,
+        // autoLoadEntities: true,
+        entities:[User,Room],
         synchronize: true,
       }),
     }),
+    RoomModule,
      
   ],
   controllers: [],
