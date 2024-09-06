@@ -1,7 +1,8 @@
-import { Injectable,HttpException,ConflictException,NotFoundException } from '@nestjs/common';
+import { Injectable,HttpException,ConflictException,BadRequestException,NotFoundException } from '@nestjs/common';
+
 import * as crypto from"crypto"
 import { InjectRepository} from '@nestjs/typeorm';
-import { Repository,MoreThan} from 'typeorm';
+import { Repository,MoreThan ,Like} from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from "bcryptjs"
 import { User } from './entities/user.entity';
@@ -199,5 +200,45 @@ async updateAvatar(id: string, avatarUrl: string): Promise<User> {
     user.avatarUrl = avatarUrl;
     return this.usersRepository.save(user);
   }
+  async findByUsername(username:string):Promise<User>{
+    return await this.usersRepository.findOne({
+      where:{username}
+    })
+  }
+  async findById(id:string):Promise<User>{
+    return await this.usersRepository.findOne({
+      where:{id}
+    })
+  }
+  
+  
 
+async search(userTofind: string) {
+  // Vérifier que la chaîne de recherche n'est pas vide
+  if (!userTofind || userTofind.trim().length === 0) {
+    throw new BadRequestException('La chaîne de recherche ne peut pas être vide');
+  }
+
+  // Rechercher les utilisateurs avec une lettre ou chaîne dans le fullname ou le username
+  const users = await this.usersRepository.find({
+    where: [
+      { fullname: Like(`%${userTofind}%`) },
+      { username: Like(`%${userTofind}%`) }
+    ],
+    relations:['friends','rooms']
+  });
+
+  // Vérifier s'il y a des utilisateurs trouvés
+  if (users.length === 0) {
+    throw new NotFoundException('Aucun utilisateur trouvé');
+  }
+  const total_users=users.length
+  return {
+    total_users,
+    users
+  };
+}
+ // async sendFriendRequestToUser(userdId:string,userRequestId:string){ }
+//  async addFriend(){}
+  
 }

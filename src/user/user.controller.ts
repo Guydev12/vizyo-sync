@@ -27,7 +27,10 @@ export class UserController {
   
 
   
-  
+  @Post("search")
+  async addFriend(@Body('search') search:string){
+    return await this.userService.search(search)
+  }
   
   @Patch("verify/:id")
   async verify(

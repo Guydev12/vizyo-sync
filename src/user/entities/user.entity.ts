@@ -64,19 +64,24 @@ export class User {
   @Column({ nullable: true })
   bio?: string;
 
+  // Utilisation d'un enum pour le rôle de l'utilisateur (optionnel)
+  @Column({
+    type: 'enum',
+    enum: ['USER', 'ADMIN', 'OWNER'],  // Par exemple
+    default: 'USER',
+  })
+  role: string;
 
-  @Column()
-  role:string
-  
-  
   @OneToMany(() => Room, room => room.user)
   rooms: Room[];
 
   @ManyToMany(() => Room, room => room.participants)
   participatingRooms: Room[];
-  
-  
-  
+
+  @ManyToMany(() => User)
+  @JoinTable()  // Ajout de JoinTable pour indiquer une relation ManyToMany avec une table intermédiaire
+  friends: User[];
+
   @BeforeInsert()
   async hashPasswordBeforeInsert() {
     if (this.password) {

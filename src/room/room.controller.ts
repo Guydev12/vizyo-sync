@@ -17,6 +17,15 @@ export class RoomController {
     console.log(req.user)
     return this.roomService.create(createRoomDto ,req.user.email);
   }
-
+ 
+ 
+ @Post(':id')
+ async addParticipants(@Param('id') id:string,@Body('username') username:string,@Req()req){
+   return await this.roomService.addParticipants(id,username,req.user.sub)
+ }
+ @Get()
+ findAll(){
+   return this.roomService.findAll()
+ }
 
 }
