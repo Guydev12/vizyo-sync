@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete ,UseInterceptors,ClassSerializerInterceptor,UseGuards,UploadedFile,BadRequestException} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete ,UseInterceptors,ClassSerializerInterceptor,UseGuards,UploadedFile,BadRequestException,Req} from '@nestjs/common';
 import{IsEmail} from 'class-validator'
 import {FileInterceptor} from'@nestjs/platform-express'
 import {diskStorage} from'multer'
@@ -28,10 +28,15 @@ export class UserController {
 
   
   @Post("search")
-  async addFriend(@Body('search') search:string){
+  async search(@Body('search') search:string){
     return await this.userService.search(search)
   }
-  
+  @Patch('friend-request/:id')
+  async sendFriendRequest(@Param('id') id:string,@Req() req){
+    const senderId=req.user.sub,
+          requestId=id
+    return this.userService.sendFriendRequest(requestId,senderId)
+  }
   @Patch("verify/:id")
   async verify(
       @Param('id')id:string,

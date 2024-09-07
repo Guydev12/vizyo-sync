@@ -60,7 +60,7 @@ export class RoomService {
       room.maxParticipants = room.participants.length;
 
       const updatedRoom = await this.roomRepository.save(room);
-      return { msg: "User invited", room: updatedRoom };
+      return { msg: "friend add", room: updatedRoom };
     } catch (err) {
       console.log(err);
       throw err;

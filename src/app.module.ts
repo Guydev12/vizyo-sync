@@ -6,7 +6,7 @@ import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { Room } from './room/entities/room.entity';
 import { RoomModule } from './room/room.module';
-
+import {FriendRequest} from './user/entities/request.entity'
 
 @Module({
   imports: [
@@ -28,7 +28,7 @@ import { RoomModule } from './room/room.module';
         password: configService.get<string>('DB_PASS'),
         database: configService.get<string>('DB_NAME'),
         // autoLoadEntities: true,
-        entities:[User,Room],
+        entities:[User,Room,FriendRequest],
         synchronize: true,
       }),
     }),

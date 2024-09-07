@@ -23,6 +23,11 @@ export class AuthController {
   async verifyEmail(@Query('token') token: string) {
     return await this.userService.verifyEmail(token);
   }
+  
+  @Get("google")
+  google(){}
+  
+  
   @Post('verify-reset-code')
    verifyResetCode(@Body('code') code:string){
     console.log("code con: ", code)

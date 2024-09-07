@@ -6,9 +6,10 @@ import { Repository,MoreThan ,Like} from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from "bcryptjs"
 import { User } from './entities/user.entity';
+import { FriendRequest } from './entities/request.entity';
 import {ForgotPasswordDto,ResetPasswordDto} from "../auth/dto"
 import { UpdateUserDto } from './dto/update-user.dto';
-import{TokenService,EmailService } from '@app/common'
+import{TokenService,EmailService ,FriendRequestService} from '@app/common'
 
 
 
@@ -17,6 +18,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private friendRequestService:FriendRequestService,
     private tokenService: TokenService,
     private emailService: EmailService,
     
@@ -98,7 +100,17 @@ export class UserService {
   
   async findOne(userId:string):Promise<User>{
     const user = await this.usersRepository.findOne({
-      where:{id:userId}
+      where:{id:userId},
+      relations:[
+        'friends',
+        'rooms',
+        'participatingRooms',
+        'sentFriendRequests',
+        'sentFriendRequests.receiver',
+        'receivedFriendRequests',
+        'receivedFriendRequests.sender',
+       // 'receivedFriendRequests.sender',
+        ]
     })
     
     if(!user)throw new HttpException("User not Found",404)
@@ -238,7 +250,46 @@ async search(userTofind: string) {
     users
   };
 }
- // async sendFriendRequestToUser(userdId:string,userRequestId:string){ }
+ async sendFriendRequest(receiverId,senderId){
+   
+   const receiver= await this.findById(receiverId)
+   if(!receiver)throw new HttpException("user not found",404)
+   const sender= await this.findById(senderId)
+   if(!sender)throw new HttpException("user not found",404)
+    
+   
+   /*const requestSent = await this.friendRequestService.findOne(sender.id)
+   console.log(requestSent)
+   console.log(sender.id)
+   if(requestSent && requestSent.status==="PENDING"){
+     throw new HttpException("A request is already sent",409)
+   }*/
+   /*const senderHasRequest = await this.usersRepository.findOne({
+     where:{
+       sentFriendRequests:{
+         sender:{id:sender.id},
+         receiver:{id:receiver.id}
+       }
+     }
+   })*/
+   
+   const selfRequest= await this.friendRequestService.sendRequest(sender,sender)//check if the sender try to auto send a request
+   if(selfRequest)throw new HttpException("You cant auto sent friend request",409)//if so throw an new BadRequestException
+   
+   const hasRequest= await this.friendRequestService.findOne(sender.id,receiver.id)//check if the sender already have a request
+   
+   if(hasRequest&& hasRequest.status==="PENDING")throw new HttpException("A request is already sent",409) //if they have a request and the request status is PENDING throw an new error
+   
+  const request = await this.friendRequestService.sendRequest(sender,receiver)
+  
+  return {
+    msg:`friend Request sent to ${request.receiver.username}`,
+    status:request.status,
+    success:true
+  }
+   
+ }
+ //logic to handle the friend request
 //  async addFriend(){}
   
 }

@@ -13,6 +13,8 @@ import {
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcryptjs';
 import { Room } from '../../room/entities/room.entity'; // Ensure this path is correct
+import {FriendRequest} from './request.entity'
+
 
 @Entity({ name: "users" })
 @Unique(["username"])
@@ -81,6 +83,12 @@ export class User {
   @ManyToMany(() => User)
   @JoinTable()  // Ajout de JoinTable pour indiquer une relation ManyToMany avec une table intermédiaire
   friends: User[];
+  
+  @OneToMany(() => FriendRequest, (friendRequest) => friendRequest.sender)
+  sentFriendRequests: FriendRequest[];
+
+  @OneToMany(() => FriendRequest, (friendRequest) => friendRequest.receiver)
+  receivedFriendRequests: FriendRequest[];
 
   @BeforeInsert()
   async hashPasswordBeforeInsert() {
@@ -94,3 +102,4 @@ export class User {
     this.updatedAt = new Date();
   }
 }
+
