@@ -307,14 +307,16 @@ async search(userTofind: string) {
    }
    if(status){
      if(status.toUpperCase()==="DECLINED"){
-       console.log(status.toUpperCase())
+      // console.log(status.toUpperCase())
        request.status=status.toUpperCase()
-       
+     //  if(request.status==="DECLINED")
+       // TODO:send a notif to the client
      }else if(status.toUpperCase()==="ACCEPTED"){
        console.log(status.toUpperCase())
        
        request.status=status.toUpperCase()
    //    console.log("request",request)
+       // TODO:send a notif to the client
        const sender= await this.findById(request.sender.id)
      //  console.log("sender",sender)
        const receiver= await this.findById(request.receiver.id)
