@@ -27,8 +27,8 @@ export class RoomService {
       });
 
       user.role = "OWNER"; // Assigner le rôle si nécessaire
-      room.maxParticipants = 1; // Initialiser avec 1 participant
-
+      room.maxParticipants += room.participants.length; // Initialiser avec 1 participant
+      await this.userService.update({role:user.role},user.id)// update the user to save the role
       const savedRoom = await this.roomRepository.save(room);
       return { msg: "Room created", room: savedRoom };
     } catch (err) {
@@ -48,15 +48,20 @@ export class RoomService {
 
       const allowedUser = await this.userService.findById(userId);
       if (!allowedUser) throw new UnauthorizedException("Not allowed");
+      const user = await this.userService.findByUsername(username)
+      console.log(user)
+      //check if the user exist
+      if(!user)throw new BadRequestException("user not found")
+      //check if the user is a friend
+      const friend= await this.userService.findOneFriend(user.id);//update this query to check for a friend with this username
+      if (!friend) throw new BadRequestException("u have to be friends to add this user");
 
-      const user = await this.userService.findByUsername(username);
-      if (!user) throw new BadRequestException("User not found");
-
-      if (room.participants.some(participant => participant.id === user.id)) {
+      if (room.participants.some(participant => participant.id === friend.id))//update user to friend
+      {
         throw new BadRequestException("User is already in the room");
       }
 
-      room.participants.push(user);
+      room.participants.push(friend);
       room.maxParticipants = room.participants.length;
 
       const updatedRoom = await this.roomRepository.save(room);

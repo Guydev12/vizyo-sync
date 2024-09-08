@@ -213,9 +213,12 @@ async updateAvatar(id: string, avatarUrl: string): Promise<User> {
     return this.usersRepository.save(user);
   }
   async findByUsername(username:string):Promise<User>{
-    return await this.usersRepository.findOne({
+    //console.log("name",username)
+    const user= await this.usersRepository.findOne({
       where:{username}
     })
+  //  console.log("users",user)
+    return user
   }
   async findById(id:string):Promise<User>{
     return await this.usersRepository.findOne({
@@ -259,89 +262,118 @@ async search(userTofind: string) {
     users
   };
 }
- async sendFriendRequest(receiverId,senderId){
-   
-   const receiver= await this.findById(receiverId)
-   if(!receiver)throw new HttpException("user not found",404)
-   const sender= await this.findById(senderId)
-   if(!sender)throw new HttpException("user not found",404)
-    
-   
-   /*const requestSent = await this.friendRequestService.findOne(sender.id)
-   console.log(requestSent)
-   console.log(sender.id)
-   if(requestSent && requestSent.status==="PENDING"){
-     throw new HttpException("A request is already sent",409)
-   }*/
-   /*const senderHasRequest = await this.usersRepository.findOne({
-     where:{
-       sentFriendRequests:{
-         sender:{id:sender.id},
-         receiver:{id:receiver.id}
-       }
-     }
-   })*/
-   
-   const selfRequest= await this.friendRequestService.sendRequest(sender,sender)//check if the sender try to auto send a request
-   if(selfRequest)throw new HttpException("You cant auto sent friend request",409)//if so throw an new BadRequestException
-   
-   const hasRequest= await this.friendRequestService.findOne(sender.id,receiver.id)//check if the sender already have a request
-   
-   if(hasRequest&& hasRequest.status==="PENDING")throw new HttpException("A request is already sent",409) //if they have a request and the request status is PENDING throw an new error
-   
-  const request = await this.friendRequestService.sendRequest(sender,receiver)
+ async sendFriendRequest(senderId, username) {
+  // Step 1: Find the receiver (user to whom the friend request is being sent) by their username
+  const receiver = await this.findByUsername(username);
   
-  return {
-    msg:`friend Request sent to ${request.receiver.username}`,
-    status:request.status,
-    success:true
+  // If the receiver is not found, throw a 404 error
+  if (!receiver) throw new HttpException("User not found", 404);
+
+  // Step 2: Find the sender (the user sending the friend request) by their ID
+  const sender = await this.findById(senderId);
+  
+  // If the sender is not found, throw a 404 error
+  if (!sender) throw new HttpException("User not found", 404);
+
+  // Step 3: Check if the sender has already sent a friend request to the receiver
+  const hasRequest = await this.friendRequestService.findOne(sender.id, receiver.id);
+
+  // Debug logs: Check what request is found and its status
+  console.log("hasRequest", hasRequest);
+  console.log("hasRequestStatus", hasRequest?.status);
+
+  // Step 4: If there is already a PENDING request, throw a 409 error (Conflict)
+  if (hasRequest && hasRequest.status === "PENDING") {
+    throw new HttpException("A request is already sent", 409);
   }
-   
- }
+
+  // Step 5: Send the friend request by calling the service method
+  const request = await this.friendRequestService.sendRequest(sender, receiver);
+
+  // Step 6: Check if the request is an attempt to send a request to oneself (auto-send)
+  const reqSenderId = request.sender.id;
+  const reqReceiverId = request.receiver.id;
+
+  // If the sender and receiver are the same, throw an error
+  if (reqReceiverId === reqSenderId) {
+    throw new HttpException("You can't auto send a friend request", 409);
+  }
+
+  // Step 7: Return a success message if the friend request is successfully sent
+  return {
+    msg: `Friend request sent to ${request.receiver.username}`,
+    status: request.status,
+    success: true
+  };
+}
  //logic to handle the friend request
- async handleFriendRequestStatus(status,requestId){
-   try{
-     const request = await this.friendRequestService.findOneRequest(requestId)//check if the sender already have a request
-   if(!request){
-     throw new HttpException("Request not found",404)
-   }
-   if(status){
-     if(status.toUpperCase()==="DECLINED"){
-      // console.log(status.toUpperCase())
-       request.status=status.toUpperCase()
-     //  if(request.status==="DECLINED")
-       // TODO:send a notif to the client
-     }else if(status.toUpperCase()==="ACCEPTED"){
-       console.log(status.toUpperCase())
-       
-       request.status=status.toUpperCase()
-   //    console.log("request",request)
-       // TODO:send a notif to the client
-       const sender= await this.findById(request.sender.id)
-     //  console.log("sender",sender)
-       const receiver= await this.findById(request.receiver.id)
-       if(!sender || !receiver)throw new HttpException('user not found',404)
-       if(sender.friends && receiver.friends){
-         sender.friends=[]
-         receiver.friends=[]
-       sender.friends.push(receiver) 
-       receiver.friends.push(sender) 
+ async handleFriendRequestStatus(status, requestId) {
+  try {
+    // Step 1: Find the friend request using the requestId
+    const request = await this.friendRequestService.findOneRequest(requestId);
+    
+    // If the request is not found, throw a 404 error
+    if (!request) {
+      throw new HttpException("Request not found", 404);
+    }
+
+    // Step 2: If the status is provided, process it
+    if (status) {
+      // Convert status to uppercase for consistency
+      const upperCaseStatus = status.toUpperCase();
+
+      // If status is "DECLINED", update the request status to "DECLINED"
+      if (upperCaseStatus === "DECLINED") {
+        request.status = upperCaseStatus;
+        // TODO: Send a notification to the client indicating the request was declined
+
+      // If status is "ACCEPTED", update request status and add friends
+      } else if (upperCaseStatus === "ACCEPTED") {
+        request.status = upperCaseStatus;
+        // TODO: Send a notification to the client indicating the request was accepted
+
+        // Step 3: Find the sender and receiver of the request
+        const sender = await this.findById(request.sender.id);
+        const receiver = await this.findById(request.receiver.id);
+        
+        // Check if sender or receiver is missing (for safety)
+        if (!sender || !receiver) throw new HttpException('User not found', 404);
+
+        // Step 4: Add each user to the other's friends list
+        // Initialize friends arrays if not already done (prevent undefined errors)
+        if (!sender.friends) sender.friends = [];
+        if (!receiver.friends) receiver.friends = [];
+        
+        // Push each user to the other's friends list
+        sender.friends.push(receiver);
+        receiver.friends.push(sender);
+
+        // Step 5: Save the updated sender and receiver in the database
+        await this.usersRepository.save(sender);
+        await this.usersRepository.save(receiver);
+        
+      } else {
+        // If the status is not "ACCEPTED" or "DECLINED", return the current request status
+        return request.status;
+      }
+    }
+
+    // Step 6: Save the updated friend request (with new status)
+    return await this.friendRequestService.save(request);
+
+  } catch (err) {
+    // Log any errors that occur
+    console.log(err);
+  }
+}
+ async findOneFriend(userId):Promise<User>{
+   return await this.usersRepository.findOne({
+     where:{
+       friends:{
+           id:userId
        }
-       await this.usersRepository.save(sender)
-       await this.usersRepository.save(receiver)
-    // console.log("sender",sender.friends[0])
-    // console.log("receiver",receiver.friends[0])
-     }else{
-       return request.status
      }
-     
-      
-   }
-  return  await this.friendRequestService.save(request)
-   }catch(err){
-     console.log(err)
-   }
+   })
  }
-//  async addFriend(){}
   
 }

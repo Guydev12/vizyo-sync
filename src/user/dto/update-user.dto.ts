@@ -18,4 +18,9 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   bio?:string
   
+  @IsString()
+  @IsOptional()
+  role:string
+  
+  
 }

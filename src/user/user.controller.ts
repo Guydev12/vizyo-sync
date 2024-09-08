@@ -31,11 +31,9 @@ export class UserController {
   async search(@Body('search') search:string){
     return await this.userService.search(search)
   }
-  @Patch('friend-request/:id')
-  async sendFriendRequest(@Param('id') id:string,@Req() req){
-    const senderId=req.user.sub,
-          requestId=id
-    return this.userService.sendFriendRequest(requestId,senderId)
+  @Post('friend-request/:id')
+  async sendFriendRequest(@Param('id') id:string,@Body('username') username){
+    return this.userService.sendFriendRequest(id,username)
   }
   @Patch("verify/:id")
   async verify(
