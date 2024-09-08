@@ -85,5 +85,8 @@ async delete(@Param('id') id:string){
 
     return { avatarUrl };
   }
-
+@Post('handle-request/:id')
+async handleFriendRequestStatus(@Body('status') status:string,@Param('id') id:string){
+  return await this.userService.handleFriendRequestStatus(status,id)
+}
 }

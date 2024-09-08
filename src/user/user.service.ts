@@ -219,7 +219,16 @@ async updateAvatar(id: string, avatarUrl: string): Promise<User> {
   }
   async findById(id:string):Promise<User>{
     return await this.usersRepository.findOne({
-      where:{id}
+      where:{id},
+      relations:[
+        'friends',      
+        'rooms',
+        'participatingRooms',
+        'sentFriendRequests',
+        'sentFriendRequests.receiver',
+        'receivedFriendRequests',
+        'receivedFriendRequests.sender',
+        ]
     })
   }
   
@@ -290,6 +299,47 @@ async search(userTofind: string) {
    
  }
  //logic to handle the friend request
+ async handleFriendRequestStatus(status,requestId){
+   try{
+     const request = await this.friendRequestService.findOneRequest(requestId)//check if the sender already have a request
+   if(!request){
+     throw new HttpException("Request not found",404)
+   }
+   if(status){
+     if(status.toUpperCase()==="DECLINED"){
+       console.log(status.toUpperCase())
+       request.status=status.toUpperCase()
+       
+     }else if(status.toUpperCase()==="ACCEPTED"){
+       console.log(status.toUpperCase())
+       
+       request.status=status.toUpperCase()
+   //    console.log("request",request)
+       const sender= await this.findById(request.sender.id)
+     //  console.log("sender",sender)
+       const receiver= await this.findById(request.receiver.id)
+       if(!sender || !receiver)throw new HttpException('user not found',404)
+       if(sender.friends && receiver.friends){
+         sender.friends=[]
+         receiver.friends=[]
+       sender.friends.push(receiver) 
+       receiver.friends.push(sender) 
+       }
+       await this.usersRepository.save(sender)
+       await this.usersRepository.save(receiver)
+    // console.log("sender",sender.friends[0])
+    // console.log("receiver",receiver.friends[0])
+     }else{
+       return request.status
+     }
+     
+      
+   }
+  return  await this.friendRequestService.save(request)
+   }catch(err){
+     console.log(err)
+   }
+ }
 //  async addFriend(){}
   
 }

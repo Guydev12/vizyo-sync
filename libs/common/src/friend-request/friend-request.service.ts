@@ -30,5 +30,15 @@ async findOne(senderId,receiverId){
   console.log("frR",request)
   return request
 }
+
+async findOneRequest(id){
+  return await this.FriendRequestRepository.findOne({
+    where:{id},
+    relations:['sender','receiver']
+  })
+}
+async save(dto:any){
+  return await this.FriendRequestRepository.save(dto)
+}
 }
 
