@@ -23,7 +23,7 @@ export class UserService {
     private emailService: EmailService,
     
   ) {}
-  //method to register a user
+  //method to register a user in the database
   async register(dto: CreateUserDto) {
     try {
       const userWithEmail = await this.usersRepository.findOne({
